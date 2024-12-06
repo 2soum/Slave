@@ -2,3 +2,7 @@
 speechrecognition
 pyaudio
 vosk
+fastapi
+numpy
+python-multipart
+uvicorn
