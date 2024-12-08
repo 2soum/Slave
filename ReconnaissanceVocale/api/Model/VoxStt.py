@@ -2,7 +2,7 @@ import vosk
 import json
 import io
 import wave
-
+from slave.model.ColorIa.core import couleur_to_hex
 from starlette.responses import JSONResponse
 
 
@@ -44,3 +44,6 @@ def reconnaissance_vocale(model,audio):
     wf.close()
     return texte
 
+def generation_rgb(description ,model, model_word2vec):
+    hexa = couleur_to_hex(description,model,model_word2vec)
+    return hexa

@@ -2,14 +2,17 @@ from fastapi import FastAPI, File
 from fastapi.responses import JSONResponse
 import vosk
 from Model.VoxStt import reconnaissance_vocale
-
+import tensorflow as tf
+from gensim.models import Word2Vec
+import numpy as np
 # Initialisation de l'application FastAPI
 app = FastAPI()
 
 # Charger le modèle Vosk une seule fois
-model_address = "../../SttVoxModel/vosk-model-small-fr-0.22"
+model_address = "C:/Users/raven/Project/Slave/model/SttVoxModel/vosk-model-small-fr-0.22"
 model = vosk.Model(model_address)
-
+model_color_ia = tf.keras.models.load_model("color_model.h5", custom_objects={'MeanSquaredError': tf.keras.losses.MeanSquaredError()})
+model_word2vec = Word2Vec.load("word2vec_model")
 @app.post("/recognize-bytes")
 async def recognize_audio_bytes(audio: bytes = File(...)):
     """
