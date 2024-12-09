@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File
 from fastapi.responses import JSONResponse
 import vosk
-from Model.VoxStt import reconnaissance_vocale
+from Model.VoxStt import reconnaissance_vocale,audio_processing
 
 # Initialisation de l'application FastAPI
 app = FastAPI()
@@ -23,7 +23,8 @@ async def recognize_audio_bytes(audio: bytes = File(...)):
     """
     try:
         # Charger les bytes dans un fichier WAV en mémoire
-        texte = reconnaissance_vocale(model,audio)
+
+        texte = reconnaissance_vocale(model,audio_processing(audio))
         return {"output": texte.strip()}
 
     except Exception as e:

@@ -3,7 +3,9 @@ import io
 import wave
 from starlette.responses import JSONResponse
 from vosk import KaldiRecognizer
-
+import soundfile as sf
+import numpy as np
+from scipy.signal import resample
 
 
 def reconnaissance_vocale(model, audio):
@@ -35,3 +37,21 @@ def reconnaissance_vocale(model, audio):
 
     return texte.strip()
 
+
+def audio_processing(audio_bytes):
+
+    audio_io = io.BytesIO(audio_bytes)
+    data, original_sample_rate = sf.read(audio_io)
+
+    # conversion vers mono
+    if len(data.shape) > 1:
+        data = data.mean(axis=1)
+
+    target_sample_rate = 16000
+    num_samples = round(len(data) * target_sample_rate / original_sample_rate)
+    resampled_data = resample(data, num_samples)
+
+    output_io = io.BytesIO()
+    sf.write(output_io, resampled_data, target_sample_rate, format='wav')
+
+    return output_io.getvalue()
