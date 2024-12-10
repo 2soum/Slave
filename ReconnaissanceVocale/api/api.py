@@ -1,7 +1,7 @@
 from fastapi import FastAPI, File
-from fastapi.responses import JSONResponse
 import vosk
-from Model.VoxStt import reconnaissance_vocale,audio_processing
+from Model.VoxStt import reconnaissance_vocale, audio_processing
+from fastapi.responses import JSONResponse
 
 # Initialisation de l'application FastAPI
 app = FastAPI()
@@ -22,13 +22,15 @@ async def recognize_audio_bytes(audio: bytes = File(...)):
         JSON: Texte reconnu.
     """
     try:
-        # Charger les bytes dans un fichier WAV en mémoire
+        # Reconnaissance vocale
+        texte = reconnaissance_vocale(model, audio_processing(audio))
 
-        texte = reconnaissance_vocale(model,audio_processing(audio))
-        return {"output": texte.strip()}
+        # Si `reconnaissance_vocale` retourne un JSONResponse (en cas d'erreur), il faut le transmettre.
+        if isinstance(texte, JSONResponse):
+            return texte
+
+        # Retour du texte reconnu dans le format simplifié
+        return {"output": texte}
 
     except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"error": f"Erreur lors du traitement de l'audio : {str(e)}"}
-        )
+        return {"error": f"Erreur lors du traitement de l'audio : {str(e)}"}
