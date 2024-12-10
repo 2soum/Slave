@@ -8,7 +8,6 @@ from gensim.models import Word2Vec
 
 # Initialisation de l'application FastAPI
 app = FastAPI()
-
 # Charger le modèle Vosk une seule fois
 try:
     model_address = "../../SttVoxModel/vosk-model-small-fr-0.22"
@@ -16,8 +15,8 @@ try:
 except Exception as e:
     raise RuntimeError(f"Échec de l'initialisation du modèle Vosk : {e}")
 try:
-    model_coloria = tf.keras.models.load_model("C:\\Users\\ahmed\\Documents\\Project\\Slave\\color_model.h5", custom_objects={'MeanSquaredError': tf.keras.losses.MeanSquaredError()})
-    model_word2vec = Word2Vec.load("C:\\Users\\ahmed\\Documents\\Project\\Slave\\word2vec_model")
+    model_coloria = tf.keras.models.load_model("../../color_model.h5", custom_objects={'MeanSquaredError': tf.keras.losses.MeanSquaredError()})
+    model_word2vec = Word2Vec.load("../../word2vec_model")
 except Exception as e:
     raise RuntimeError(f"Échec de l'initialisation du modèle colorIa : {e}")
 @app.post("/recognize-bytes")
