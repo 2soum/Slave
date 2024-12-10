@@ -1,26 +1,25 @@
-from fastapi import FastAPI, File
+from fastapi import FastAPI, File, HTTPException
 import vosk
 from Model.VoxStt import reconnaissance_vocale, audio_processing
 from fastapi.responses import JSONResponse
+from color import couleur_to_hex
+import tensorflow as tf
+from gensim.models import Word2Vec
 
 # Initialisation de l'application FastAPI
 app = FastAPI()
 
 # Charger le modèle Vosk une seule fois
-model_address = "../../SttVoxModel/vosk-model-small-fr-0.22"
-model = vosk.Model(model_address)
-
-# Dictionnaire pour mapper les mots clés à leurs codes hexadécimaux (incluant les teintes foncées)
-color_map = {
-    "rouge": "#FF0000",
-    "rouge bordeaux": "#800000",
-    "vert": "#00FF00",
-    "vert foncé": "#006400",
-    "bleu": "#0000FF",
-    "bleu marine": "#000080",
-    # Ajoutez d'autres couleurs et nuances ici
-}
-
+try:
+    model_address = "../../SttVoxModel/vosk-model-small-fr-0.22"
+    model = vosk.Model(model_address)
+except Exception as e:
+    raise RuntimeError(f"Échec de l'initialisation du modèle Vosk : {e}")
+try:
+    model_coloria = tf.keras.models.load_model("C:\\Users\\ahmed\\Documents\\Project\\Slave\\color_model.h5", custom_objects={'MeanSquaredError': tf.keras.losses.MeanSquaredError()})
+    model_word2vec = Word2Vec.load("C:\\Users\\ahmed\\Documents\\Project\\Slave\\word2vec_model")
+except Exception as e:
+    raise RuntimeError(f"Échec de l'initialisation du modèle colorIa : {e}")
 @app.post("/recognize-bytes")
 async def recognize_audio_bytes(audio: bytes = File(...)):
     """
@@ -33,18 +32,23 @@ async def recognize_audio_bytes(audio: bytes = File(...)):
         JSON: Texte reconnu ou code hexadécimal correspondant.
     """
     try:
-        # Reconnaissance vocale
+        # Traitement et reconnaissance vocale
         texte = reconnaissance_vocale(model, audio_processing(audio))
 
-        # Si `reconnaissance_vocale` retourne un JSONResponse (en cas d'erreur), il faut le transmettre.
+        # Vérification si une erreur a été retournée
         if isinstance(texte, JSONResponse):
             return texte
-        # Vérification si le texte correspond à une couleur dans le dictionnaire
-        couleur = texte.lower()
-        if couleur in color_map:
-            return {"output": color_map[couleur]}
 
-        # Retour du texte reconnu dans le format simplifié si aucune correspondance n'est trouvée
-        return {"output": texte}
+        # Conversion du texte en code hexadécimal (si correspondance trouvée)
+        couleur = couleur_to_hex(texte.lower(),model_word2vec,model_coloria)
+        if not couleur:
+            raise HTTPException(status_code=404, detail="Couleur non reconnue dans la base de données.")
+
+        return {"output": couleur}
+
+    except HTTPException as http_ex:
+        # Gérer les exceptions FastAPI
+        raise http_ex
     except Exception as e:
+        # Gérer toute autre erreur
         return {"error": f"Erreur lors du traitement de l'audio : {str(e)}"}

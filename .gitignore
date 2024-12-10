@@ -1,2 +1,7 @@
-
 /SttVoxModel/vosk-model-fr-0.22
+
+# Ignorer le dossier venv dans reconnaissanceVocale/api
+ReconnaissanceVocale/api/venv/
+
+# Ignorer les fichiers .pyc
+*.pyc
