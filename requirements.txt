@@ -6,3 +6,6 @@ fastapi
 numpy
 python-multipart
 uvicorn
+gensim
+tensorflow
+numpy
